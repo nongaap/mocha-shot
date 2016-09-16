@@ -1,0 +1,20 @@
+{
+  "name": "mocha-shot",
+  "version": "1.0.0",
+  "description": "Create mocha js files",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha ./test/test.js"
+  },
+  "author": "Mike Puangmalai",
+  "license": "ISC",
+  "dependencies": {
+    "chai": "^3.5.0",
+    "cheerio": "^0.20.0",
+    "escape-string-regexp": "^1.0.5",
+    "express": "^4.14.0",
+    "mkdirp": "^0.5.1",
+    "mocha": "^2.5.3",
+    "supertest": "^1.2.0"
+  }
+}
