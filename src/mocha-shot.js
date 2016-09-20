@@ -1,24 +1,32 @@
-
+'use strict';
 const fs = require('fs');
 const mkdirp = require('mkdirp');
 const escapeStringRegexp = require('escape-string-regexp');
-
+const path = require('path');
 const mochaShot = {};
+const appRootDir = require('app-root-dir').get();
+const pathToTestFile = path.relative(path.join(__dirname), path.join(appRootDir,'test/test.js'));
 
-mochaShot.createTest = function (fileName, filePath) {
-  if (fileName === undefined || filePath === undefined || typeof fileName !== 'string' || typeof filePath !== 'string') {
-    return console.log('Error: Must provide module name and path as a string (i.e. mochaShot.createTest("module_name", "file_path")');
+mochaShot.createTest = function (fileName) {
+  if (fileName === undefined || typeof fileName !== 'string') {
+    return console.log('Error: Must provide module name as a string (i.e. mochaShot.createTest("module_name")');
   }
 
-  return fs.access('../test/test.js', fs.F_OK, (err) => {
+  return fs.access(pathToTestFile, fs.F_OK, (err) => {
     if (!err) {
-      const requirePath = '\nvar ' + fileName + ' = require(' + JSON.stringify(filePath) + ');\n';
+      const requirePath = '\nvar ' + fileName + ' = require(' + JSON.stringify(path.relative(path.join(appRootDir,'test/'), module.parent.filename)) + ');\n';
+      console.log('filePath dirname',path.join(__filename));
+      console.log('filePath file',path.basename(__filename));
+      console.log('module.parent.filename',module.parent.filename);
+      console.log('from - to', path.relative(path.join(appRootDir,'test/'), module.parent.filename));
+      console.log('app root dir',appRootDir);
+      console.log('test path',path.join(appRootDir,'test/test.js'));
       const escapedString = escapeStringRegexp(requirePath);
-      return fs.readFile('../test/test.js', 'utf8', (error, data) => {
+      return fs.readFile(pathToTestFile, 'utf8', (error, data) => {
         if (!data.match(escapedString)) {
-          fs.appendFile('../test/test.js', '\nvar ' + fileName + ' = require(' + JSON.stringify(filePath) + ');\n');
+          fs.appendFile(pathToTestFile, '\nvar ' + fileName + ' = require(' + JSON.stringify(path.relative(path.join(appRootDir,'test/'), module.parent.filename)) + ');\n');
           const test = ['\n', 'describe(', JSON.stringify('File should exist'), ',', ' function(){', '\n  it(', JSON.stringify('Check that the file being test exists'), ', function() {\n  expect(' + fileName + ').to.not.be.undefined;\n  });\n', '});\n'].join('');
-          return fs.appendFile('../test/test.js', test);
+          return fs.appendFile(pathToTestFile, test);
         }
       });
     } else {
@@ -26,10 +34,10 @@ mochaShot.createTest = function (fileName, filePath) {
       mkdirp('../test');
 
       // creates test.js file and adds 'use strict' adds require('chai').expect
-      fs.appendFile('../test/test.js', JSON.stringify('use strict') + ';' + "\nvar expect = require('chai').expect;\n" + "\nvar request = require('supertest');\n");
-      fs.appendFile('../test/test.js', '\nvar ' + fileName + ' = require(' + JSON.stringify(filePath) + ');\n');
+      fs.appendFile(pathToTestFile, JSON.stringify('use strict') + ';' + "\nvar expect = require('chai').expect;\n" + "\nvar request = require('supertest');\n");
+      fs.appendFile(pathToTestFile, '\nvar ' + fileName + ' = require(' + JSON.stringify(path.relative(path.join(appRootDir,'test/'), module.parent.filename)) + ');\n');
       const test = ['\n', 'describe(', JSON.stringify('File should exist'), ',', ' function(){', '\n  it(', JSON.stringify('Check that the file being test exists'), ', function() {\n  expect(' + fileName + ').to.not.be.undefined;\n  });\n', '});\n'].join('');
-      return fs.appendFile('../test/test.js', test);
+      return fs.appendFile(pathToTestFile, test);
     }
   });
 };
@@ -39,13 +47,13 @@ mochaShot.equal = function (des, input, expected_output) {
   const test = ['\n', 'describe(', JSON.stringify('Equality test for numbers, strings, or booleans'), ',', ' function(){', '\n  it(', JSON.stringify(des), ', function() {\n  expect(' + JSON.stringify(input) + ').to.equal(' + JSON.stringify(expected_output) + ');\n  });\n', '});\n'].join('');
 
   let escapedString = escapeStringRegexp(test);
-  
-  fs.readFile('../test/test.js', 'utf8', (err, data) => {
+
+  fs.readFile(pathToTestFile, 'utf8', (err, data) => {
     if (err) {
-      return console.log('Error: Must create test file. Use mochaShot.createTest method (i.e. mochaShot.createTest("module_name", "file_path")');
+      return console.log('Error: Must create test file. Use mochaShot.createTest method (i.e. mochaShot.createTest("module_name")');
     }
-    else if (!data.match(escapedString)) {
-      return fs.appendFile('../test/test.js', test);
+    else if (!data.match(escapedString) && !err) {
+      return fs.appendFile(pathToTestFile, test);
     }
   });
 };
@@ -55,12 +63,12 @@ mochaShot.eql = function(des, inputObj, expected_outputObj) {
 
   let escapedString = escapeStringRegexp(test);
 
-  fs.readFile('../test/test.js', 'utf8', (err, data) => {  
+  fs.readFile(pathToTestFile, 'utf8', (err, data) => {  
     if (err) {
-      return console.log('Error: Must create test file. Use mochaShot.createTest method (i.e. mochaShot.createTest("module_name", "file_path")');
+      return console.log('Error: Must create test file. Use mochaShot.createTest method (i.e. mochaShot.createTest("module_name")');
     }
-    else if (!data.match(escapedString)) {
-      return fs.appendFile('../test/test.js', test);
+    else if (!data.match(escapedString) && !err) {
+      return fs.appendFile(pathToTestFile, test);
     }
   });
 };
@@ -72,12 +80,12 @@ mochaShot.eqlFunction = function (description, input, expected_value, method) {
 
   let escapedString = escapeStringRegexp(test);
   
-  fs.readFile('../test/test.js', 'utf8', (err, data) => {  
+  fs.readFile(pathToTestFile, 'utf8', (err, data) => {  
     if (err) {
-      return console.log('Error: Must create test file. Use mochaShot.createTest method (i.e. mochaShot.createTest("module_name", "file_path")');
+      return console.log('Error: Must create test file. Use mochaShot.createTest method (i.e. mochaShot.createTest("module_name")');
     }
-    else if (!data.match(escapedString)) {
-      return fs.appendFile('../test/test.js', test);
+    else if (!data.match(escapedString) && !err) {
+      return fs.appendFile(pathToTestFile, test);
     }
   });
 };
@@ -88,12 +96,12 @@ mochaShot.getTest = function (description, route, input, expected, moduleName, s
 
   let escapedString = escapeStringRegexp(test);
   
-  fs.readFile('../test/test.js', 'utf8', (err, data) => {
+  fs.readFile(pathToTestFile, 'utf8', (err, data) => {
     if (err) {
-      return console.log('Error: Must create test file. Use mochaShot.createTest method (i.e. mochaShot.createTest("module_name", "file_path")');
+      return console.log('Error: Must create test file. Use mochaShot.createTest method (i.e. mochaShot.createTest("module_name")');
     }
-    else if (!data.match(escapedString)) {
-      return fs.appendFile('../test/test.js', test);
+    else if (!data.match(escapedString) && !err) {
+      return fs.appendFile(pathToTestFile, test);
     }
   });
 };
