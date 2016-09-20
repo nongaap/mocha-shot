@@ -1,6 +1,7 @@
 var express = require("express");
 var app = express();
 var mochaShot = require('./mocha-shot.js');
+var path = require('path');
 
 app.get("/", function(req, res) {
     res.send({ message: "Hello, World!" });
@@ -18,7 +19,7 @@ app.get('/api', function(req, res) {
 
 module.exports = app;
 
-mochaShot.createTest('app','../src/server.js');
+mochaShot.createTest('app');
 
 //GET Tests
 

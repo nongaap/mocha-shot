@@ -45,7 +45,7 @@ module.exports = FlickrFetcher;
 //If folder/test.js does not exist, the method will create it
 // Each file automatically gets a test to determine that the file and path exist
 
-mochaShot.createTest('FlickrFetcher','../src/sandbox.js');
+mochaShot.createTest('FlickrFetcher');
 
 //Equal tests: Pass in description, inputed value, expected value
 
