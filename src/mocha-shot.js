@@ -1,12 +1,12 @@
 'use strict';
 const fs = require('fs');
-const mkdirp = require('mkdirp');
 const escapeStringRegexp = require('escape-string-regexp');
 const path = require('path');
 const appRootDir = require('app-root-dir').get();
 
 const mochaShot = {};
-const pathToTestFile = path.relative(path.join(__dirname), path.join(appRootDir, 'test/test.js'));
+const pathToTestFile = path.join(appRootDir, 'test/test.js');
+const pathToTestFolder = path.join(appRootDir, 'test');
 
 mochaShot.createTest = function (fileName) {
   if (fileName === undefined || typeof fileName !== 'string') {
@@ -26,7 +26,9 @@ mochaShot.createTest = function (fileName) {
       });
     } else {
       // creates test folder if one does not exist
-      mkdirp('../test');
+      if (!fs.existsSync(pathToTestFolder)) {
+        fs.mkdirSync(pathToTestFolder);
+      }
 
       // creates test.js file and adds 'use strict' adds require('chai').expect
       fs.appendFile(pathToTestFile, JSON.stringify('use strict') + ';' + "\nvar expect = require('chai').expect;\n" + "\nvar request = require('supertest');\n");
